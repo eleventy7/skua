@@ -19,6 +19,8 @@ package io.skua.configserver.node;
 import io.aeron.cluster.service.ClientSession;
 import io.aeron.logbuffer.FragmentHandler;
 import io.aeron.logbuffer.Header;
+import io.skua.protocol.MessageHeaderDecoder;
+import io.skua.protocol.RegisterNewSkuaSessionCommandDecoder;
 import org.agrona.DirectBuffer;
 import org.agrona.ExpandableDirectByteBuffer;
 import org.slf4j.Logger;
@@ -29,18 +31,29 @@ public class ProtocolDemuxer implements FragmentHandler
 {
     private final SkuaCore stateMachine;
     private final Logger logger = LoggerFactory.getLogger(ProtocolDemuxer.class);
+    private final MessageHeaderDecoder headerDecoder;
     private ExpandableDirectByteBuffer returnBuffer;
-
     private ClientSession session;
 
     public ProtocolDemuxer(SkuaCore stateMachine)
     {
         this.stateMachine = stateMachine;
+        this.headerDecoder = new MessageHeaderDecoder();
     }
 
     @Override
     public void onFragment(DirectBuffer buffer, int offset, int length, Header header)
     {
+        headerDecoder.wrap(buffer, offset);
+
+        switch (headerDecoder.templateId())
+        {
+            case RegisterNewSkuaSessionCommandDecoder.TEMPLATE_ID:
+                //new sessop
+                break;
+            default:
+                break;
+        }
     }
 
     public void setSession(ClientSession session)

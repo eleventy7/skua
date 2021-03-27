@@ -18,7 +18,6 @@ plugins {
     id 'java'
     id 'idea'
     id 'checkstyle'
-    id 'maven-publish'
 }
 
 java {
@@ -103,61 +102,6 @@ allprojects {
     }
 }
 
-project('configuration-server') {
-    apply plugin: 'java-library'
-    apply plugin: 'checkstyle'
-
-    dependencies {
-        implementation group: 'io.aeron', name: 'aeron-all', version: '1.32.0'
-        implementation "org.agrona:agrona:1.9.0"
-    }
-
-}
-
-project('client') {
-    apply plugin: 'java-library'
-    apply plugin: 'checkstyle'
-
-    configurations{
-        codecGeneration
-    }
-
-    def generatedDir = file("${buildDir}/generated-src")
-    sourceSets {
-        generated {
-            java.srcDir generatedDir
-            compileClasspath += configurations.codecGeneration
-        }
-    }
-
-    dependencies {
-        implementation group: 'io.aeron', name: 'aeron-all', version: '1.32.0'
-        implementation "org.agrona:agrona:1.9.0"
-        api files('build/classes/java/generated')
-        codecGeneration "uk.co.real-logic:sbe-tool:1.21.0"
-    }
-
-    compileJava.dependsOn 'compileGeneratedJava'
-    compileGeneratedJava.dependsOn 'generateCodecs'
-
-    task generateCodecs(type: JavaExec) {
-        def codecsFile = 'src/main/resources/messages.xml'
-        def sbeFile = 'src/main/resources/sbe/sbe.xsd'
-
-        inputs.files(codecsFile, sbeFile)
-        outputs.dir generatedDir
-
-        main = 'uk.co.real_logic.sbe.SbeTool'
-        classpath = configurations.codecGeneration
-        systemProperties(
-                'sbe.output.dir': generatedDir,
-                'sbe.target.language': 'Java',
-                'sbe.validation.xsd': sbeFile,
-                'sbe.validation.stop.on.error': 'true')
-        args = [codecsFile]
-    }
-}
-
 project(':protocol') {
     apply plugin: 'java-library'
     apply plugin: 'checkstyle'
@@ -194,4 +138,38 @@ project(':protocol') {
     }
 
     jar.dependsOn compileGeneratedJava
+}
+
+project('configuration-server') {
+    apply plugin: 'java-library'
+    apply plugin: 'checkstyle'
+
+    dependencies {
+        implementation group: 'io.aeron', name: 'aeron-all', version: '1.32.0'
+        implementation "org.agrona:agrona:1.9.0"
+        implementation project(":protocol")
+    }
+
+    idea {
+        dependencies {
+            implementation project(':protocol').sourceSets.generated.output
+        }
+    }
+}
+
+project('client') {
+    apply plugin: 'java-library'
+    apply plugin: 'checkstyle'
+
+    dependencies {
+        implementation group: 'io.aeron', name: 'aeron-all', version: '1.32.0'
+        implementation "org.agrona:agrona:1.9.0"
+        implementation project(":protocol")
+    }
+
+    idea {
+        dependencies {
+            implementation project(':protocol').sourceSets.generated.output
+        }
+    }
 }
