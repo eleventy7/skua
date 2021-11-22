@@ -145,7 +145,7 @@ project('configuration-server') {
     apply plugin: 'checkstyle'
 
     dependencies {
-        implementation group: 'io.aeron', name: 'aeron-all', version: '1.32.0'
+        implementation group: 'io.aeron', name: 'aeron-all', version: '1.36.0'
         implementation "org.agrona:agrona:1.9.0"
         implementation project(":protocol")
     }
@@ -162,7 +162,7 @@ project('client') {
     apply plugin: 'checkstyle'
 
     dependencies {
-        implementation group: 'io.aeron', name: 'aeron-all', version: '1.32.0'
+        implementation group: 'io.aeron', name: 'aeron-all', version: '1.36.0'
         implementation "org.agrona:agrona:1.9.0"
         implementation project(":protocol")
     }
