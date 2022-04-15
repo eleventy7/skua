@@ -112,7 +112,7 @@ project(':protocol') {
     }
 
     dependencies {
-        implementation "org.agrona:agrona:1.9.0"
+        implementation "org.agrona:agrona:1.15.1"
         implementation "uk.co.real-logic:sbe-tool:1.21.0"
         testImplementation sourceSets.generated.output
     }
@@ -146,7 +146,7 @@ project('configuration-server') {
 
     dependencies {
         implementation group: 'io.aeron', name: 'aeron-all', version: '1.32.0'
-        implementation "org.agrona:agrona:1.9.0"
+        implementation "org.agrona:agrona:1.15.1"
         implementation project(":protocol")
     }
 
@@ -163,7 +163,7 @@ project('client') {
 
     dependencies {
         implementation group: 'io.aeron', name: 'aeron-all', version: '1.32.0'
-        implementation "org.agrona:agrona:1.9.0"
+        implementation "org.agrona:agrona:1.15.1"
         implementation project(":protocol")
     }
 
