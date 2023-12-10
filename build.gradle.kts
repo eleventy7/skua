@@ -16,11 +16,4 @@
  *
  */
 
-plugins {
-    id("io.skua.java-library-conventions")
-}
-
-dependencies {
-    implementation(libs.agrona)
-    api(project(":list"))
-}
+defaultTasks("check", "build", "test")
