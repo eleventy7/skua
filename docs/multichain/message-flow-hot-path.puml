@@ -1,0 +1,54 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title Message Flow - Hot Path, 1 Topic, 2 Partitions, ISR 2. Heartbeating etc not shown
+
+== Skua Producer Connect ==
+
+Producer -> MembershipService : Connect
+MembershipService -> Producer : Return Configuration
+Producer -> PartitionCoordinator : Connect
+PartitionCoordinator -> Producer : Acknowledged
+Producer -> PartitionReplica : Connect
+PartitionReplica -> Producer : Acknowledged
+
+Consumer -> MembershipService : Connect
+MembershipService -> Consumer : Return Configuration
+Consumer -> PartitionCoordinator : Connect
+PartitionCoordinator -> Consumer : Acknowledged
+Consumer -> PartitionReplica : Connect
+PartitionReplica -> Consumer : Acknowledged
+
+== Skua Producer Admin Action ==
+
+Producer -> MembershipService : Create Topic (Partitions=2, ISR=2)
+MembershipService -> PartitionCoordinator: CreateTopicPartition
+PartitionCoordinator -> PartitionCoordinator : Create IPC Buffer
+PartitionCoordinator -> PartitionCoordinator : Create Archive Subscription
+PartitionCoordinator -> MembershipService : CreateTopicAckPartitionAck
+
+MembershipService -> PartitionReplica: CreateTopicPartition
+PartitionReplica -> PartitionReplica : Create IPC Buffer
+PartitionReplica -> PartitionReplica : Create Archive Subscription
+PartitionReplica -> MembershipService : CreateTopicAckPartitionAck
+MembershipService -> Producer : CreateTopicAck
+
+== Skua Consumer Subscribe to Topic ==
+
+Consumer -> MembershipService : SubscribeTopic
+MembershipService -> Consumer : Return Topic Membership
+Consumer -> PartitionReplica : SubscribeTopicPartition
+
+== Skua Producer Send and Consumer Receive ==
+
+Producer -> Producer : API Send data (key, value)
+Producer -> Producer : Compute Partition (key)
+Producer -> PartitionCoordinator : Send to partition coordinator (key, value)
+PartitionCoordinator -> PartitionCoordinator : Append to local Archive
+PartitionCoordinator -> PartitionReplica : Archive Replication
+PartitionReplica -> MembershipService : ReplicaStatus(newestOffset, partition)
+PartitionCoordinator -> MembershipService : ReplicaStatus(newestOffset, partition)
+PartitionReplica -> Consumer : Data(key, value)
+Consumer -> MembershipService : Acknowledge (offset, partition)
+
+@enduml

@@ -1,0 +1,54 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title Client Interactions
+
+== Skua Client Connect ==
+
+Client -> ConfigurationCluster : Connect
+ConfigurationCluster -> Client : Return Configuration
+Client -> PartitionServer1 : Connect
+PartitionServer1 -> Client : Acknowledged
+Client -> PartitionServer2 : Connect
+PartitionServer2 -> Client : Acknowledged
+Client -> PartitionServer3 : Connect
+PartitionServer3 -> Client : Acknowledged
+
+loop Heartbeat Process, 250ms
+    Client -> ConfigurationCluster : Heartbeat
+    ConfigurationCluster --> Client : Heartbeat
+    Client -> PartitionServer1 : Heartbeat
+    PartitionServer1  --> Client : Heartbeat
+    Client -> PartitionServer2 : Heartbeat
+    PartitionServer2  --> Client : Heartbeat
+    Client -> PartitionServer3 : Heartbeat
+    PartitionServer3  --> Client : Heartbeat
+end
+
+== Skua Partition Server Added ==
+
+PartitionServer4 -> ConfigurationCluster : Connect
+ConfigurationCluster -> PartitionServer4 : Acknowledged
+loop Heartbeat Process, 250ms
+    PartitionServer4 -> ConfigurationCluster : Heartbeat
+    ConfigurationCluster --> PartitionServer4 : Heartbeat
+end
+ConfigurationCluster -> Client : ConfigurationUpdate
+Client -> PartitionServer4 : Connect
+
+loop Heartbeat Process, 250ms
+    Client -> ConfigurationCluster : Heartbeat
+    ConfigurationCluster --> Client : Heartbeat
+    Client -> PartitionServer1 : Heartbeat
+    PartitionServer1  --> Client : Heartbeat
+    Client -> PartitionServer2 : Heartbeat
+    PartitionServer2  --> Client : Heartbeat
+    Client -> PartitionServer3 : Heartbeat
+    PartitionServer3  --> Client : Heartbeat
+    Client -> PartitionServer4 : Heartbeat
+    PartitionServer4  --> Client : Heartbeat
+end
+
+
+
+@enduml
