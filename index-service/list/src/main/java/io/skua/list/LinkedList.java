@@ -1,7 +1,5 @@
 /*
- *
- *  * Copyright 2021-2023 Shaun Laurens
- *  *
+ * Copyright 2023 Shaun Laurens
  *  * Licensed under the Apache License, Version 2.0 (the "License");
  *  * you may not use this file except in compliance with the License.
  *  * You may obtain a copy of the License at
@@ -16,11 +14,29 @@
  *
  */
 
-plugins {
-    id("io.skua.java-library-conventions")
-}
+package io.skua.list;
 
-dependencies {
-    implementation(libs.agrona)
-    api(project(":list"))
+public class LinkedList
+{
+
+    public void add(final String element)
+    {
+        //
+    }
+
+    public boolean remove(final String element)
+    {
+        return false;
+    }
+
+    public int size()
+    {
+        return 0;
+    }
+
+    public String get(final int index)
+    {
+        return "";
+    }
+
 }

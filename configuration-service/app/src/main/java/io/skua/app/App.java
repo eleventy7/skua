@@ -1,5 +1,4 @@
 /*
- *
  *  * Copyright 2021-2023 Shaun Laurens
  *  *
  *  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +15,12 @@
  *
  */
 
-package io.skua.utilities;
+package io.skua.app;
 
-import io.skua.list.LinkedList;
-
-public class StringUtils
+public class App
 {
-    public static String join(LinkedList source)
+    public static void main(final String[] args)
     {
-        return JoinUtils.join(source);
-    }
-
-    public static LinkedList split(String source)
-    {
-        return SplitUtils.split(source);
+        System.out.println("yo");
     }
 }

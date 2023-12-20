@@ -16,6 +16,8 @@
  *
  */
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     // Include 'plugins build' to define convention plugins.
     includeBuild("build-logic")
@@ -27,4 +29,4 @@ plugins {
 }
 
 rootProject.name = "skua"
-include("app", "list", "utilities")
+include("configuration-service:app", "index-service:list", "index-service:utilities")

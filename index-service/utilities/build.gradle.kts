@@ -17,15 +17,12 @@
  */
 
 plugins {
-    id("io.skua.java-application-conventions")
+    id("io.skua.java-library-conventions")
 }
 
 dependencies {
-    implementation(libs.aeron)
-    implementation(project(":utilities"))
-}
-
-application {
-    // Define the main class for the application.
-    mainClass.set("io.skua.app.App")
+    implementation(libs.agrona)
+    api(":index-service:utilities")
+    //api(projects.)  //.projectDir = new File ("../list"))
+    //api(projects.getByName("index-service:list"))
 }
