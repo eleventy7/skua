@@ -39,7 +39,7 @@ public class QuillHostConnection
     private boolean isMutable = false;
 
     /**
-     * Uses the provided {@link org.agrona.DirectBuffer} from the given offset.
+     * Uses the provided {@link DirectBuffer} from the given offset.
      *
      * @param buffer - buffer to read from and write to.
      * @param offset - offset to begin reading from/writing to in the buffer.

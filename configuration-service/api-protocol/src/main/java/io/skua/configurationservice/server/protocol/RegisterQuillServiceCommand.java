@@ -20,63 +20,68 @@ public class RegisterQuillServiceCommand
      */
     public static final short WIRE_PROTOCOL_VERSION = 1;
     /**
+     * The offset for the message length within the buffer.
+     */
+    private static final int MESSAGE_LENGTH_OFFSET = 0;
+    /**
+     * The offset for the encoding type within the buffer.
+     */
+    private static final int EIDER_WIRE_ENCODING_TYPE_OFFSET = 4;
+    /**
      * The offset for the WIRE_PROTOCOL_ID within the buffer.
      */
-    private static final int HEADER_OFFSET = 0;
+    private static final int PROTOCOL_ID_OFFSET = 6;
     /**
      * The offset for the WIRE_PROTOCOL_VERSION within the buffer.
      */
-    private static final int HEADER_VERSION_OFFSET = 2;
-    /**
-     * The length offset. Required for segmented buffers.
-     */
-    private static final int LENGTH_OFFSET = 4;
+    private static final int HEADER_VERSION_OFFSET = 8;
     /**
      * The byte offset in the byte array for this LONG. Byte length is 8.
      */
-    private static final int CORRELATIONID_OFFSET = 8;
+    private static final int CORRELATIONID_OFFSET = 10;
     /**
      * The byte offset in the byte array for this INT. Byte length is 4.
      */
-    private static final int QUILLHOSTCONNECTION_COUNT_OFFSET = 16;
+    private static final int QUILLHOSTCONNECTION_COUNT_OFFSET = 18;
     /**
      * The byte offset in the byte array to start writing QuillHostConnection.
      */
-    private static final int QUILLHOSTCONNECTION_RECORD_START_OFFSET = 20;
+    private static final int QUILLHOSTCONNECTION_RECORD_START_OFFSET = 22;
     /**
      * The total bytes required to store the core data, excluding any repeating record data.
-     * Use precomputeBufferLength to compute buffer length of this object.
+     * Use precomputeBufferLength to compute buffer length this object.
      */
-    private static final int BUFFER_LENGTH = 20;
-    /**
-     * The flyweight for the QuillHostConnection record.
-     */
-    @SuppressWarnings("checkstyle:MemberName")
-    private final QuillHostConnection QUILLHOSTCONNECTION_FLYWEIGHT = new QuillHostConnection();
+    private static final int BUFFER_LENGTH = 22;
     /**
      * The internal DirectBuffer.
      */
     private DirectBuffer buffer = null;
+
     /**
      * The internal DirectBuffer used for mutatation opertions. Valid only if a mutable buffer was provided.
      */
     private MutableDirectBuffer mutableBuffer = null;
+
     /**
      * The internal UnsafeBuffer. Valid only if an unsafe buffer was provided.
      */
     private UnsafeBuffer unsafeBuffer = null;
+
     /**
      * The starting offset for reading and writing.
      */
     private int initialOffset;
+
     /**
      * Flag indicating if the buffer is mutable.
      */
     private boolean isMutable = false;
+
     /**
      * Flag indicating if the buffer is an UnsafeBuffer.
      */
     private boolean isUnsafe = false;
+
     /**
      * The max number of items allocated for this record. Use resize() to alter.
      */
@@ -84,7 +89,13 @@ public class RegisterQuillServiceCommand
     private int QUILLHOSTCONNECTION_COMMITTED_SIZE = 0;
 
     /**
-     * Uses the provided {@link org.agrona.DirectBuffer} from the given offset.
+     * The flyweight for the QuillHostConnection record.
+     */
+    @SuppressWarnings("checkstyle:MemberName")
+    private QuillHostConnection QUILLHOSTCONNECTION_FLYWEIGHT = new QuillHostConnection();
+
+    /**
+     * Uses the provided {@link DirectBuffer} from the given offset.
      *
      * @param buffer - buffer to read from and write to.
      * @param offset - offset to begin reading from/writing to in the buffer.
@@ -133,10 +144,12 @@ public class RegisterQuillServiceCommand
         {
             throw new RuntimeException("cannot write to immutable buffer");
         }
-        mutableBuffer.putShort(initialOffset + HEADER_OFFSET, WIRE_PROTOCOL_ID, java.nio.ByteOrder.LITTLE_ENDIAN);
+        mutableBuffer.putInt(initialOffset + MESSAGE_LENGTH_OFFSET, BUFFER_LENGTH, java.nio.ByteOrder.LITTLE_ENDIAN);
+        mutableBuffer.putShort(initialOffset + EIDER_WIRE_ENCODING_TYPE_OFFSET, (short)43,
+            java.nio.ByteOrder.LITTLE_ENDIAN);
+        mutableBuffer.putShort(initialOffset + PROTOCOL_ID_OFFSET, WIRE_PROTOCOL_ID, java.nio.ByteOrder.LITTLE_ENDIAN);
         mutableBuffer.putShort(initialOffset + HEADER_VERSION_OFFSET, WIRE_PROTOCOL_VERSION,
             java.nio.ByteOrder.LITTLE_ENDIAN);
-        mutableBuffer.putInt(initialOffset + LENGTH_OFFSET, BUFFER_LENGTH, java.nio.ByteOrder.LITTLE_ENDIAN);
     }
 
     /**
@@ -144,10 +157,17 @@ public class RegisterQuillServiceCommand
      */
     public boolean validateHeader()
     {
-        final short wireProtocolId = buffer.getShort(initialOffset + HEADER_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
+        final int bufferLength = buffer.getInt(initialOffset + MESSAGE_LENGTH_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
+        final int encodingType =
+            buffer.getShort(initialOffset + EIDER_WIRE_ENCODING_TYPE_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
+        final short wireProtocolId =
+            buffer.getShort(initialOffset + PROTOCOL_ID_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
         final short wireProtocolVersion =
             buffer.getShort(initialOffset + HEADER_VERSION_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
-        final int bufferLength = buffer.getInt(initialOffset + LENGTH_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
+        if (encodingType != EIDER_WIRE_ENCODING_TYPE_OFFSET)
+        {
+            return false;
+        }
         if (wireProtocolId != WIRE_PROTOCOL_ID)
         {
             return false;
@@ -183,7 +203,7 @@ public class RegisterQuillServiceCommand
     }
 
     /**
-     * Uses the provided {@link org.agrona.DirectBuffer} from the given offset.
+     * Uses the provided {@link DirectBuffer} from the given offset.
      *
      * @param buffer - buffer to read from and write to.
      * @param offset - offset to begin reading from/writing to in the buffer.
@@ -192,14 +212,6 @@ public class RegisterQuillServiceCommand
     {
         setUnderlyingBuffer(buffer, offset);
         writeHeader();
-    }
-
-    /**
-     * True if transactions are supported; false if not.
-     */
-    public boolean supportsTransactions()
-    {
-        return false;
     }
 
     /**

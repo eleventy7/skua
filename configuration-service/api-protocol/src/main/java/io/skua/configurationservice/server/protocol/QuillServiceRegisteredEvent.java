@@ -14,7 +14,7 @@ public class QuillServiceRegisteredEvent
     /**
      * The total bytes required to store this fixed length object.
      */
-    public static final int BUFFER_LENGTH = 19;
+    public static final int BUFFER_LENGTH = 21;
     /**
      * Indicates if this flyweight holds a fixed length object.
      */
@@ -24,29 +24,33 @@ public class QuillServiceRegisteredEvent
      */
     public static final short WIRE_PROTOCOL_VERSION = 1;
     /**
+     * The offset for the message length within the buffer.
+     */
+    private static final int MESSAGE_LENGTH_OFFSET = 0;
+    /**
+     * The offset for the encoding type within the buffer.
+     */
+    private static final int EIDER_WIRE_ENCODING_TYPE_OFFSET = 4;
+    /**
      * The offset for the WIRE_PROTOCOL_ID within the buffer.
      */
-    private static final int HEADER_OFFSET = 0;
+    private static final int PROTOCOL_ID_OFFSET = 6;
     /**
      * The offset for the WIRE_PROTOCOL_VERSION within the buffer.
      */
-    private static final int HEADER_VERSION_OFFSET = 2;
-    /**
-     * The length offset. Required for segmented buffers.
-     */
-    private static final int LENGTH_OFFSET = 4;
+    private static final int HEADER_VERSION_OFFSET = 8;
     /**
      * The byte offset in the byte array for this LONG. Byte length is 8.
      */
-    private static final int CORRELATIONID_OFFSET = 8;
+    private static final int CORRELATIONID_OFFSET = 10;
     /**
      * The byte offset in the byte array for this BOOLEAN. Byte length is 1.
      */
-    private static final int SUCCESS_OFFSET = 16;
+    private static final int SUCCESS_OFFSET = 18;
     /**
      * The byte offset in the byte array for this SHORT. Byte length is 2.
      */
-    private static final int STATUSCODE_OFFSET = 17;
+    private static final int STATUSCODE_OFFSET = 19;
     /**
      * The internal DirectBuffer.
      */
@@ -78,7 +82,7 @@ public class QuillServiceRegisteredEvent
     private boolean isUnsafe = false;
 
     /**
-     * Uses the provided {@link org.agrona.DirectBuffer} from the given offset.
+     * Uses the provided {@link DirectBuffer} from the given offset.
      *
      * @param buffer - buffer to read from and write to.
      * @param offset - offset to begin reading from/writing to in the buffer.
@@ -127,10 +131,12 @@ public class QuillServiceRegisteredEvent
         {
             throw new RuntimeException("cannot write to immutable buffer");
         }
-        mutableBuffer.putShort(initialOffset + HEADER_OFFSET, WIRE_PROTOCOL_ID, java.nio.ByteOrder.LITTLE_ENDIAN);
+        mutableBuffer.putInt(initialOffset + MESSAGE_LENGTH_OFFSET, BUFFER_LENGTH, java.nio.ByteOrder.LITTLE_ENDIAN);
+        mutableBuffer.putShort(initialOffset + EIDER_WIRE_ENCODING_TYPE_OFFSET, (short)43,
+            java.nio.ByteOrder.LITTLE_ENDIAN);
+        mutableBuffer.putShort(initialOffset + PROTOCOL_ID_OFFSET, WIRE_PROTOCOL_ID, java.nio.ByteOrder.LITTLE_ENDIAN);
         mutableBuffer.putShort(initialOffset + HEADER_VERSION_OFFSET, WIRE_PROTOCOL_VERSION,
             java.nio.ByteOrder.LITTLE_ENDIAN);
-        mutableBuffer.putInt(initialOffset + LENGTH_OFFSET, BUFFER_LENGTH, java.nio.ByteOrder.LITTLE_ENDIAN);
     }
 
     /**
@@ -138,10 +144,17 @@ public class QuillServiceRegisteredEvent
      */
     public boolean validateHeader()
     {
-        final short wireProtocolId = buffer.getShort(initialOffset + HEADER_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
+        final int bufferLength = buffer.getInt(initialOffset + MESSAGE_LENGTH_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
+        final int encodingType =
+            buffer.getShort(initialOffset + EIDER_WIRE_ENCODING_TYPE_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
+        final short wireProtocolId =
+            buffer.getShort(initialOffset + PROTOCOL_ID_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
         final short wireProtocolVersion =
             buffer.getShort(initialOffset + HEADER_VERSION_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
-        final int bufferLength = buffer.getInt(initialOffset + LENGTH_OFFSET, java.nio.ByteOrder.LITTLE_ENDIAN);
+        if (encodingType != EIDER_WIRE_ENCODING_TYPE_OFFSET)
+        {
+            return false;
+        }
         if (wireProtocolId != WIRE_PROTOCOL_ID)
         {
             return false;
@@ -223,7 +236,7 @@ public class QuillServiceRegisteredEvent
     }
 
     /**
-     * Uses the provided {@link org.agrona.DirectBuffer} from the given offset.
+     * Uses the provided {@link DirectBuffer} from the given offset.
      *
      * @param buffer - buffer to read from and write to.
      * @param offset - offset to begin reading from/writing to in the buffer.
@@ -232,13 +245,5 @@ public class QuillServiceRegisteredEvent
     {
         setUnderlyingBuffer(buffer, offset);
         writeHeader();
-    }
-
-    /**
-     * True if transactions are supported; false if not.
-     */
-    public boolean supportsTransactions()
-    {
-        return false;
     }
 }
