@@ -17,7 +17,7 @@ public final class WireProtocolHelper
      */
     public static short getWireProtocolId(final DirectBuffer buffer, final int offset)
     {
-        return buffer.getShort(offset, java.nio.ByteOrder.LITTLE_ENDIAN);
+        return buffer.getShort(offset + 4, java.nio.ByteOrder.LITTLE_ENDIAN);
     }
 
     /**
@@ -25,6 +25,6 @@ public final class WireProtocolHelper
      */
     public static short getWireProtocolVersion(final DirectBuffer buffer, final int offset)
     {
-        return buffer.getShort(offset + 2, java.nio.ByteOrder.LITTLE_ENDIAN);
+        return buffer.getShort(offset + 6, java.nio.ByteOrder.LITTLE_ENDIAN);
     }
 }
