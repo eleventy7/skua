@@ -1,0 +1,10 @@
+version: "1.0"
+profile:
+  name: qodana.starter
+projectJDK: 21 #(Applied in CI/CD pipeline)
+linter: jetbrains/qodana-jvm:latest
+exclude:
+  - name: All
+    paths:
+      - build-logic/build/generated-sources/
+      - build-logic/src/main/kotlin
